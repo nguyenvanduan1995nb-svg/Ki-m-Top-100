@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình tạo Barcode 3 of 9</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Trình tạo Barcode (Code 39)</h1>
+        <p>Nhập dữ liệu thủ công hoặc tải lên file Excel để tạo mã vạch.</p>
+
+        <div class="controls">
+            <div class="input-group">
+                <input type="text" id="manualInput" placeholder="Nhập dữ liệu...">
+                <button id="addButton">Thêm</button>
+            </div>
+            <div class="input-group">
+                <label for="excelFile">Hoặc tải lên file Excel:</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls">
+            </div>
+            <button id="exportPdfButton">🖨️ Xuất PDF</button>
+        </div>
+
+        <hr>
+
+        <h2>Danh sách mã vạch</h2>
+        <div id="barcodeContainer">
+            </div>
+    </div>
+
+    <div id="zoomModal" class="modal">
+        <span class="close-button">&times;</span>
+        <div class="modal-content">
+            <svg id="zoomedBarcode"></svg>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
