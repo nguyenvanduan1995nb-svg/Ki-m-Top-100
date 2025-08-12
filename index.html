@@ -3,22 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình tạo Barcode 3 of 9</title>
+    <title>Trình tạo Barcode và Tên sản phẩm</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <h1>Trình tạo Barcode (Code 39)</h1>
-        <p>Nhập dữ liệu thủ công hoặc tải lên file Excel để tạo mã vạch.</p>
+        <h1>Trình tạo Barcode cho Sản phẩm</h1>
+        <p>Nhập thủ công hoặc tải lên file Excel để tạo mã vạch hàng loạt.</p>
 
         <div class="controls">
-            <div class="input-group">
-                <input type="text" id="manualInput" placeholder="Nhập dữ liệu...">
+            <div class="input-group manual-inputs">
+                <input type="text" id="productCodeInput" placeholder="Mã sản phẩm (để tạo barcode)...">
+                <input type="text" id="productNameInput" placeholder="Tên sản phẩm (để hiển thị)...">
                 <button id="addButton">Thêm</button>
             </div>
             <div class="input-group">
-                <label for="excelFile">Hoặc tải lên file Excel:</label>
+                <label for="excelFile">Hoặc tải lên file Excel (Cột A: Mã, Cột B: Tên SP):</label>
                 <input type="file" id="excelFile" accept=".xlsx, .xls">
             </div>
             <button id="exportPdfButton">🖨️ Xuất PDF</button>
@@ -26,23 +28,28 @@
 
         <hr>
 
-        <h2>Danh sách mã vạch</h2>
+        <h2>Danh sách sản phẩm và mã vạch</h2>
         <div id="barcodeContainer">
-            </div>
+            <!-- Mã vạch sẽ được thêm vào đây -->
+        </div>
     </div>
 
+    <!-- Modal để phóng to mã vạch -->
     <div id="zoomModal" class="modal">
         <span class="close-button">&times;</span>
         <div class="modal-content">
+            <h3 id="zoomedProductName"></h3>
             <svg id="zoomedBarcode"></svg>
         </div>
     </div>
 
+    <!-- Thư viện JavaScript cần thiết -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
+    <!-- Tệp script chính -->
     <script src="script.js"></script>
 </body>
 </html>
