@@ -61,7 +61,7 @@
       </label>
       <div id="fname-top20" class="small">(Chưa có file)</div>
     </div>
-    <div class="small">Cột: Barcode = index 2, Name = index 3</div>
+    <div class="small">Cột: Barcode = index 0, Name = index 1</div>
     <div id="table-wrap-top20"></div>
   </div>
 
@@ -103,12 +103,11 @@
 
     function parseCSV(file, bIndex, nIndex, tab, containerId){
       Papa.parse(file, {complete: res => {
-        const data = res.data.filter(r=>r.length);
+        const data = res.data.filter(r=>r.length && r[bIndex] && r[nIndex]);
         load(tab);
         const saved = {};
         state[tab].forEach(it => saved[it.barcode] = it.qty);
-        state[tab] = data.map(r=>({barcode:(r[bIndex]||'').trim(), name:(r[nIndex]||'').trim(), qty:saved[(r[bIndex]||'').trim()]||''}))
-          .filter(it=>it.barcode && it.name);
+        state[tab] = data.map(r=>({barcode:(r[bIndex]||'').trim(), name:(r[nIndex]||'').trim(), qty:saved[(r[bIndex]||'').trim()]||''}));
         save(tab); buildTable(tab, containerId);
       }});
     }
@@ -148,7 +147,7 @@
     });
 
     document.getElementById('file-top100').onchange = e=> parseCSV(e.target.files[0],0,1,'top100','table-wrap-top100');
-    document.getElementById('file-top20').onchange = e=> parseCSV(e.target.files[0],2,3,'top20','table-wrap-top20');
+    document.getElementById('file-top20').onchange = e=> parseCSV(e.target.files[0],0,1,'top20','table-wrap-top20');
     document.getElementById('export-btn').onclick = exportExcel;
     document.getElementById('reset-btn').onclick = resetData;
 
