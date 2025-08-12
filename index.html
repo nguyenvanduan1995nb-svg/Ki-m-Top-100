@@ -1,55 +1,161 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trình tạo Barcode và Tên sản phẩm</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ứng dụng kiểm kê - TOP 100 / TOP 20 PROMOTION</title>
+  <style>
+    :root{--accent:#0b74de;--muted:#666}
+    body{font-family:Arial, sans-serif;margin:0;background:#f6f8fb;color:#111}
+    header{background:#fff;padding:16px 20px;box-shadow:0 1px 4px rgba(20,20,40,0.06);display:flex;align-items:center;justify-content:space-between}
+    h1{font-size:18px;margin:0}
+    .tabs{display:flex;background:#fff;padding:12px 20px;gap:12px}
+    .tab{padding:8px 12px;border-radius:8px;cursor:pointer}
+    .tab.active{background:var(--accent);color:#fff}
+    .panel{padding:16px;max-width:1100px;margin:20px auto;background:#fff;border-radius:8px}
+    .file-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    label.button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer}
+    input[type=file]{display:none}
+    .small{font-size:13px;color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    th{background:#fafbff}
+    .qty{width:100px}
+    .actions{display:flex;gap:8px;margin-left:auto}
+    button{cursor:pointer;border:none;border-radius:6px;padding:8px 12px}
+    .reset{background:#ccc;color:#000}
+    .primary{background:var(--accent);color:#fff}
+    .barcode-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)}
+    .barcode-inner{background:#fff;padding:20px;border-radius:8px;text-align:center}
+  </style>
 </head>
 <body>
+  <header>
+    <h1>Ứng dụng kiểm kê</h1>
+    <div class="small">Dữ liệu lưu trong LocalStorage</div>
+  </header>
+  <div class="tabs">
+    <div class="tab active" data-tab="top100">TOP 100</div>
+    <div class="tab" data-tab="top20">TOP 20 PROMOTION</div>
+  </div>
 
-    <div class="container">
-        <h1>Trình tạo Barcode cho Sản phẩm</h1>
-        <p>Nhập thủ công hoặc tải lên file Excel để tạo mã vạch hàng loạt.</p>
-
-        <div class="controls">
-            <div class="input-group manual-inputs">
-                <input type="text" id="productCodeInput" placeholder="Mã sản phẩm (để tạo barcode)...">
-                <input type="text" id="productNameInput" placeholder="Tên sản phẩm (để hiển thị)...">
-                <button id="addButton">Thêm</button>
-            </div>
-            <div class="input-group">
-                <label for="excelFile">Hoặc tải lên file Excel (Cột A: Mã, Cột B: Tên SP):</label>
-                <input type="file" id="excelFile" accept=".xlsx, .xls">
-            </div>
-            <button id="exportPdfButton">🖨️ Xuất PDF</button>
-        </div>
-
-        <hr>
-
-        <h2>Danh sách sản phẩm và mã vạch</h2>
-        <div id="barcodeContainer">
-            <!-- Mã vạch sẽ được thêm vào đây -->
-        </div>
+  <div class="panel" id="panel-top100">
+    <div class="file-row">
+      <label class="button">Chọn file TOP 100 (CSV)
+        <input id="file-top100" type="file" accept=".csv" />
+      </label>
+      <div id="fname-top100" class="small">(Chưa có file)</div>
+      <div class="actions">
+        <button id="export-btn" class="primary">Xuất Excel</button>
+        <button id="reset-btn" class="reset">Đặt lại</button>
+      </div>
     </div>
+    <div class="small">Cột: Barcode = index 0, Name = index 1</div>
+    <div id="table-wrap-top100"></div>
+  </div>
 
-    <!-- Modal để phóng to mã vạch -->
-    <div id="zoomModal" class="modal">
-        <span class="close-button">&times;</span>
-        <div class="modal-content">
-            <h3 id="zoomedProductName"></h3>
-            <svg id="zoomedBarcode"></svg>
-        </div>
+  <div class="panel" id="panel-top20" style="display:none">
+    <div class="file-row">
+      <label class="button">Chọn file TOP 20 PROMOTION (CSV)
+        <input id="file-top20" type="file" accept=".csv" />
+      </label>
+      <div id="fname-top20" class="small">(Chưa có file)</div>
     </div>
+    <div class="small">Cột: Barcode = index 2, Name = index 3</div>
+    <div id="table-wrap-top20"></div>
+  </div>
 
-    <!-- Thư viện JavaScript cần thiết -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Tệp script chính -->
-    <script src="script.js"></script>
+  <div class="barcode-modal" id="barcode-modal">
+    <div class="barcode-inner">
+      <div id="barcode-title"></div>
+      <svg id="barcode-svg"></svg>
+      <div style="margin-top:10px"><button id="close-barcode" class="reset">Đóng</button></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script>
+    const KEYS = { top100: 'inv_top100', top20: 'inv_top20' };
+    let state = { top100: [], top20: [] };
+
+    function save(tab){ localStorage.setItem(KEYS[tab], JSON.stringify(state[tab])); }
+    function load(tab){ const s = localStorage.getItem(KEYS[tab]); if(s) state[tab] = JSON.parse(s); }
+
+    function buildTable(tab, containerId){
+      const wrap = document.getElementById(containerId);
+      if(!state[tab].length){ wrap.innerHTML = '<div class="small">Chưa có dữ liệu</div>'; return; }
+      let html = '<table><thead><tr><th>#</th><th>Barcode</th><th>Name</th><th>Qty</th></tr></thead><tbody>';
+      state[tab].forEach((it,i)=> {
+        html += `<tr>
+          <td>${i+1}</td>
+          <td style="color:blue;cursor:pointer" onclick="showBarcode('${it.barcode}')">${it.barcode}</td>
+          <td>${it.name}</td>
+          <td><input type="number" min="0" value="${it.qty||''}" data-i="${i}" onchange="updateQty('${tab}',${i},this.value)"></td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+
+    function updateQty(tab,i,val){ state[tab][i].qty = val; save(tab); }
+
+    function parseCSV(file, bIndex, nIndex, tab, containerId){
+      Papa.parse(file, {complete: res => {
+        const data = res.data.filter(r=>r.length);
+        load(tab);
+        const saved = {};
+        state[tab].forEach(it => saved[it.barcode] = it.qty);
+        state[tab] = data.map(r=>({barcode:(r[bIndex]||'').trim(), name:(r[nIndex]||'').trim(), qty:saved[(r[bIndex]||'').trim()]||''}))
+          .filter(it=>it.barcode && it.name);
+        save(tab); buildTable(tab, containerId);
+      }});
+    }
+
+    function exportExcel(){
+      const rows = [];
+      state.top100.forEach(it=>rows.push({Tab:'TOP 100',Barcode:it.barcode,Name:it.name,Qty:it.qty||0}));
+      state.top20.forEach(it=>rows.push({Tab:'TOP 20',Barcode:it.barcode,Name:it.name,Qty:it.qty||0}));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+      XLSX.writeFile(wb, 'inventory.xlsx');
+    }
+
+    function resetData(){
+      if(confirm('Xóa toàn bộ dữ liệu?')){
+        localStorage.removeItem(KEYS.top100);
+        localStorage.removeItem(KEYS.top20);
+        state.top100 = []; state.top20 = [];
+        buildTable('top100','table-wrap-top100');
+        buildTable('top20','table-wrap-top20');
+      }
+    }
+
+    function showBarcode(code){
+      document.getElementById('barcode-title').innerText = code;
+      JsBarcode('#barcode-svg', code, {format:'CODE128', displayValue:true, height:60});
+      document.getElementById('barcode-modal').style.display = 'flex';
+    }
+    document.getElementById('close-barcode').onclick = ()=> document.getElementById('barcode-modal').style.display='none';
+
+    document.querySelectorAll('.tab').forEach(t=>t.onclick = e=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      e.target.classList.add('active');
+      document.getElementById('panel-top100').style.display = e.target.dataset.tab==='top100'?'':'none';
+      document.getElementById('panel-top20').style.display = e.target.dataset.tab==='top20'?'':'none';
+    });
+
+    document.getElementById('file-top100').onchange = e=> parseCSV(e.target.files[0],0,1,'top100','table-wrap-top100');
+    document.getElementById('file-top20').onchange = e=> parseCSV(e.target.files[0],2,3,'top20','table-wrap-top20');
+    document.getElementById('export-btn').onclick = exportExcel;
+    document.getElementById('reset-btn').onclick = resetData;
+
+    load('top100'); load('top20');
+    buildTable('top100','table-wrap-top100');
+    buildTable('top20','table-wrap-top20');
+  </script>
 </body>
 </html>
+
