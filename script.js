@@ -1,149 +1,183 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const manualInput = document.getElementById('manualInput');
-    const addButton = document.getElementById('addButton');
-    const excelFile = document.getElementById('excelFile');
-    const barcodeContainer = document.getElementById('barcodeContainer');
-    const exportPdfButton = document.getElementById('exportPdfButton');
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f9;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
 
-    const modal = document.getElementById('zoomModal');
-    const closeButton = document.querySelector('.close-button');
-    const zoomedBarcode = document.getElementById('zoomedBarcode');
+.container {
+    width: 100%;
+    max-width: 1000px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
 
-    // Hàm tạo mã vạch và thêm vào container
-    const createBarcode = (value) => {
-        if (!value) return; // Bỏ qua nếu giá trị rỗng
+h1, h2, h3 {
+    color: #0056b3;
+    text-align: center;
+}
 
-        const item = document.createElement('div');
-        item.className = 'barcode-item';
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #e9f2fa;
+    border-radius: 6px;
+    align-items: center;
+}
 
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.id = `barcode-${value}-${Date.now()}`;
-        
-        const text = document.createElement('p');
-        text.textContent = value;
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
 
-        item.appendChild(svg);
-        item.appendChild(text);
-        barcodeContainer.appendChild(item);
+input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+    min-width: 200px;
+}
 
-        try {
-            JsBarcode(svg, value, {
-                format: "CODE39",
-                lineColor: "#000",
-                width: 2,
-                height: 80,
-                displayValue: false
-            });
-        } catch (e) {
-            console.error(e);
-            item.innerHTML = `<p style="color:red;">Lỗi tạo mã vạch cho: ${value}</p>`;
-        }
-        
-        // Thêm sự kiện click để phóng to
-        item.addEventListener('click', () => {
-             JsBarcode(zoomedBarcode, value, {
-                format: "CODE39",
-                lineColor: "#000",
-                width: 4,
-                height: 150,
-                displayValue: true,
-                fontSize: 24
-            });
-            modal.style.display = 'flex';
-        });
-    };
+input[type="file"] {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+}
 
-    // Sự kiện cho nút "Thêm" thủ công
-    addButton.addEventListener('click', () => {
-        const value = manualInput.value.trim();
-        createBarcode(value);
-        manualInput.value = '';
-    });
-    
-    // Sự kiện khi nhấn Enter trong ô input
-    manualInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addButton.click();
-        }
-    });
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 
-    // Sự kiện khi chọn file Excel
-    excelFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+button:hover {
+    background-color: #0056b3;
+}
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const data = new Uint8Array(event.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            
-            // Chuyển sheet thành JSON, chỉ lấy cột đầu tiên
-            const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            
-            json.forEach(row => {
-                if(row[0]) { // Đảm bảo ô đầu tiên của hàng có dữ liệu
-                    createBarcode(String(row[0]));
-                }
-            });
-        };
-        reader.readAsArrayBuffer(file);
-        excelFile.value = ''; // Reset input để có thể chọn lại cùng 1 file
-    });
+#exportPdfButton {
+    background-color: #28a745;
+    margin-top: 10px;
+}
 
-    // Sự kiện đóng modal
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-    
-    window.addEventListener('click', (event) => {
-        if (event.target == modal) {
-            modal.style.display = 'none';
-        }
-    });
+#exportPdfButton:hover {
+    background-color: #1e7e34;
+}
 
-    // Sự kiện cho nút "Xuất PDF"
-    exportPdfButton.addEventListener('click', () => {
-        if (barcodeContainer.children.length === 0) {
-            alert("Không có mã vạch nào để xuất PDF.");
-            return;
-        }
-        
-        const { jsPDF } = window.jspdf;
-        html2canvas(barcodeContainer, {
-            scale: 2 // Tăng chất lượng ảnh chụp
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'pt',
-                format: 'a4'
-            });
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 30px 0;
+}
 
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
-            const ratio = canvasWidth / canvasHeight;
-            
-            const imgWidth = pdfWidth - 40; // trừ lề
-            const imgHeight = imgWidth / ratio;
-            
-            let heightLeft = imgHeight;
-            let position = 20; // vị trí bắt đầu từ trên xuống
+#barcodeContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    min-height: 100px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+}
 
-            pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-            heightLeft -= (pdfHeight - 40);
+.barcode-item {
+    width: 250px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
 
-            while (heightLeft > 0) {
-                pdf.addPage();
-                position = -heightLeft - 20;
-                pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-                heightLeft -= (pdfHeight - 40);
-            }
-            
-            pdf.save('danh-sach-ma-vach.pdf');
-        });
-    });
-});
+.barcode-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.1);
+}
+
+.barcode-item svg {
+    display: block;
+    margin: 10px auto;
+    width: 100%;
+}
+
+.product-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+    word-wrap: break-word;
+}
+
+.product-code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    color: #555;
+    margin: 5px 0 0 0;
+    word-wrap: break-word;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 40px;
+    border: 1px solid #888;
+    border-radius: 8px;
+    max-width: 80%;
+    text-align: center;
+}
+
+#zoomedProductName {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+#zoomedBarcode {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+}
+
+.close-button {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+}
