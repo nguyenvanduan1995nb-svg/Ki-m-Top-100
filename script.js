@@ -13,11 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hàm tạo mã vạch và thêm vào container
     const createBarcode = (code, name) => {
-        if (!code) return; // Mã sản phẩm là bắt buộc
+        // *** SỬA LỖI: Chuyển mã sang chữ IN HOA để tương thích với Code39 ***
+        const upperCaseCode = String(code).toUpperCase();
+        if (!upperCaseCode) return; // Bỏ qua nếu mã rỗng
 
         const item = document.createElement('div');
         item.className = 'barcode-item';
-        item.dataset.code = code;
+        // Lưu trữ dữ liệu đã được chuẩn hóa
+        item.dataset.code = upperCaseCode;
         item.dataset.name = name;
 
         const nameElement = document.createElement('p');
@@ -28,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const codeElement = document.createElement('p');
         codeElement.className = 'product-code';
-        codeElement.textContent = code;
+        codeElement.textContent = upperCaseCode; // Hiển thị mã đã được in hoa
 
         item.appendChild(nameElement);
         item.appendChild(svg);
@@ -36,7 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
         barcodeContainer.appendChild(item);
 
         try {
-            JsBarcode(svg, code, {
+            // Sử dụng mã đã được in hoa để tạo barcode
+            JsBarcode(svg, upperCaseCode, {
                 format: "CODE39",
                 lineColor: "#000",
                 width: 2,
@@ -45,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (e) {
             console.error(e);
-            item.innerHTML = `<p class="product-name">${name}</p><p style="color:red;">Lỗi tạo mã vạch cho: ${code}</p>`;
+            item.innerHTML = `<p class="product-name">${name}</p><p style="color:red;">Lỗi tạo mã vạch cho: ${upperCaseCode}</p>`;
         }
         
         item.addEventListener('click', () => {
